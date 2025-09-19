@@ -2,8 +2,8 @@ name: Deploy to Server Staging
 
 on:
   push:
-    branches: [ main ]   # Trigger saat push ke branch main
-      workflow_dispatch: {}   # <= manual trigger dari Actions tab
+    branches:
+      - main
 
 concurrency:
   group: deploy-staging-${{ github.ref }}
