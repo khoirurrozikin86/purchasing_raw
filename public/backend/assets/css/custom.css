@@ -1,0 +1,39 @@
+.feather-16 {
+
+    width: 16px;
+    height: 16px;
+}
+
+.feather-10 {
+
+  width: 14px;
+  height: 14xpx;
+}
+
+
+table.dataTable td {
+    font-size: 0.5em;
+    
+  }
+
+  table.dataTable tr.dtrg-level-0 td {
+    font-size: 1em;
+  }
+
+  .dataTables_wrapper {
+    font-size: inherit; 
+}
+
+.small-font td,
+.small-font th {
+    font-size: 7px; 
+}
+
+
+body {
+  font-size: 11px;
+  font-family: Calibri, sans-serif;
+}
+
+
+
