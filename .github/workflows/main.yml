@@ -23,7 +23,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
           script: |
-            cd /var/www/laravel
+            cd /var/www/purchasing_raw
             
             # Fetch semua perubahan dari remote
             git fetch origin
