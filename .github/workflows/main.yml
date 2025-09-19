@@ -3,11 +3,7 @@ name: Deploy to Server Staging
 on:
   push:
     branches:
-      - main
-
-concurrency:
-  group: deploy-staging-${{ github.ref }}
-  cancel-in-progress: true
+      - main  # Hanya trigger ketika ada push ke branch main
 
 jobs:
   deploy-staging:
@@ -15,67 +11,41 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
         with:
-          ref: main
-          fetch-depth: 0
+          ref: main  # Gunakan branch main
 
       - name: Deploy to Staging via SSH
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.SSH_HOST }}
+          host: ${{ secrets.SS_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          script_stop: true
           script: |
-            set -e
-            APP_DIR="/var/www/laravel"
-            BRANCH="main"
-
-            # Clone pertama kali kalau belum ada
-            if [ ! -d "$APP_DIR/.git" ]; then
-              sudo mkdir -p "$APP_DIR"
-              sudo chown -R $USER:www-data "$APP_DIR"
-              git clone -b "$BRANCH" https://github.com/${GITHUB_REPOSITORY}.git "$APP_DIR"
-            fi
-
-            cd "$APP_DIR"
-
-            # Pastikan .env hanya ada di server
-            if [ ! -f .env ]; then
-              echo "ERROR: .env belum ada di $APP_DIR ; buat dulu lalu rerun."
-              exit 1
-            fi
-
-            # Update kode
+            cd /var/www/html/ozapi
+            
+            # Fetch semua perubahan dari remote
             git fetch origin
-            git checkout "$BRANCH"
-            git reset --hard "origin/$BRANCH"
-
-            # Composer dependencies
-            export COMPOSER_ALLOW_SUPERUSER=1
-            composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
-
-            # Laravel housekeeping
-            php artisan storage:link || true
+            
+            # Reset branch main ke versi remote
+            git checkout main
+            git reset --hard origin/main
+            
+            # Install dependencies (tanpa dev dependencies)
+            composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
+            
+            # Run database migrations
             php artisan migrate --force
+            
+            # Cache optimizations
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
-
-            # Frontend build (jika ada)
-            if [ -f package.json ]; then
-              npm ci
-              npm run build
-            fi
-
-            # Permission penting
-            sudo chown -R www-data:www-data storage bootstrap/cache
-            find storage -type d -exec chmod 775 {} \;
-            find bootstrap/cache -type d -exec chmod 775 {} \;
-
-            # Reload service (pilih sesuai stack)
-            sudo systemctl reload apache2 || sudo systemctl restart apache2 || true
-            # sudo systemctl reload php8.2-fpm || true
-            # sudo systemctl reload nginx || true
+            
+            # Jika menggunakan frontend build
+            # npm ci --production
+            # npm run build
+            
+            # Reload PHP jika diperlukan
+            # sudo systemctl reload php-fpm
