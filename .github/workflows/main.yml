@@ -23,7 +23,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
           script: |
-            cd /var/www/html/ozapi
+            cd /var/www/laravel
             
             # Fetch semua perubahan dari remote
             git fetch origin
